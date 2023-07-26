@@ -7,7 +7,7 @@ EMPTY_VALUE = '-пусто-'
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    """Представляет модель User в интерфейсе администратора."""
+    """Модель User в админке."""
     list_display = ('id', 'username', 'first_name',
                     'last_name', 'email', 'password')
     list_filter = ('email', 'username', )
@@ -16,7 +16,7 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Subscribe)
 class SubscribeAdmin(admin.ModelAdmin):
-    """Представляет модель Subscribe в интерфейсе администратора."""
+    """Модель Subscribe в админке."""
     list_display = ('id', 'user', 'author')
     search_fields = ('user',)
     list_filter = ('user', )

@@ -1,14 +1,18 @@
 from django.contrib import admin
 
-from .models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                     ShoppingCart, Tag)
+from .models import (Favorite, 
+                     Ingredient, 
+                     IngredientRecipe, 
+                     Recipe,
+                     ShoppingCart, 
+                     Tag)
 
 EMPTY_VALUE = '-пусто-'
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    """Представляет модель Tag в интерфейсе администратора."""
+    """Модель Tag в админке."""
     list_display = ('id', 'name', 'color', 'slug')
     search_fields = ('name',)
     list_filter = ('name',)
@@ -16,13 +20,13 @@ class TagAdmin(admin.ModelAdmin):
 
 
 class IngredientRecipeInline(admin.TabularInline):
-    """Представляет модель IngredientRecipe в интерфейсе администратора."""
+    """Модель IngredientRecipe в админке."""
     model = IngredientRecipe
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    """Представляет модель Ingredient в интерфейсе администратора."""
+    """Модель Ingredient в админке."""
     list_display = ('id', 'name', 'measurement_unit')
     search_fields = ('name',)
     list_filter = ('name',)
@@ -32,7 +36,7 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    """Представляет модель Recipe в интерфейсе администратора."""
+    """Модель Recipe в админке."""
     list_display = ('id', 'name', 'author')
     search_fields = ('author', 'name', 'tags')
     inlines = (IngredientRecipeInline,)
@@ -44,7 +48,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-    """Представляет модель Favorite в интерфейсе администратора."""
+    """Модель Favorite в админке."""
     list_display = ('id', 'user', 'recipe')
     search_fields = ('user',)
     list_filter = ('user',)
@@ -53,7 +57,7 @@ class FavoriteAdmin(admin.ModelAdmin):
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    """Представляет модель ShoppingCart в интерфейсе администратора."""
+    """Модель ShoppingCart в админке."""
     list_display = ('id', 'user', 'recipe')
     search_fields = ('user',)
     list_filter = ('user',)

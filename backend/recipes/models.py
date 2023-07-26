@@ -6,7 +6,7 @@ User = get_user_model()
 
 
 class Tag(models.Model):
-    """Модель тегов у рецептов пользователей."""
+    """Модель рецептов."""
     name = models.CharField(
         'Название',
         max_length=200,
@@ -48,7 +48,7 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    """Модель рецептов пользователей."""
+    """Модель рецептов."""
     author = models.ForeignKey(
         User,
         verbose_name='Автор',
