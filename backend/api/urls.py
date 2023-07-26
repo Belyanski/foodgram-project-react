@@ -2,7 +2,9 @@ from django.urls import include, path
 
 from rest_framework.routers import DefaultRouter
 
-from .views import (CustomUserViewSet, IngredientsViewSet, RecipesViewSet,
+from .views import (CustomUserViewSet, 
+                    IngredientsViewSet, 
+                    RecipesViewSet,
                     TagsViewSet)
 
 router_v1 = DefaultRouter()
@@ -17,5 +19,3 @@ urlpatterns = [
     path('', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
 ]
-
-# Возможно, нужна ссылка на документацию 

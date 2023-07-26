@@ -18,6 +18,4 @@ class Command(BaseCommand):
 
             Ingredient.objects.bulk_create(ingredients_to_create)
             
-        print('Загрузка завершена')
-
-# python manage.py loader_ingrs
+        print('Загрузка завершена!')

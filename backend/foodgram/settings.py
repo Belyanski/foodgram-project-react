@@ -1,14 +1,18 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-s1i_mwj44^vdt!kus9!&mmwmqd)6vs_etgs8ixabh_n*higst8'
+SECRET_KEY = os.getenv('SECRET_KEY', '22')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', False) == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 
 
@@ -44,11 +48,10 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'foodgram.urls'
 
 
-TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [TEMPLATES_DIR],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
