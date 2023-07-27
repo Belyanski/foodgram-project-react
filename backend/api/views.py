@@ -36,38 +36,37 @@ from .serializers import (
 )
 
 
-
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
 
-    @action(detail=False, methods=['post'], 
+    @action(detail=False, methods=['post'],
             permission_classes=[IsAuthenticated])
     def set_password(self, request, pk=None):
         user = self.request.user
         if user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = PasswordSerializer(data=request.data, 
+        serializer = PasswordSerializer(data=request.data,
                                         context={'request': request})
         if serializer.is_valid():
             user.set_password(serializer.data['new_password'])
             user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response(serializer.errors, 
+            return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get'], 
+    @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         user = request.user
         queryset = User.objects.filter(follower__user=user)
         pages = self.paginate_queryset(queryset)
-        serializer = SubscribeSerializer(pages, many=True, 
+        serializer = SubscribeSerializer(pages, many=True,
                                          context={'request': request})
         return self.get_paginated_response(serializer.data)
 
-    @action(methods=['get', 'delete'], detail=True, 
+    @action(methods=['get', 'delete'], detail=True,
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, id):
         user = self.request.user
@@ -77,11 +76,11 @@ class CustomUserViewSet(UserViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if request.method == 'GET':
             if subscribe.exists():
-                data = {'errors': 
+                data = {'errors':
                         'You are already subscribed to this author.'}
                 return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
             Subscribe.objects.create(user=user, author=author)
-            serializer = SubscribeSerializer(author, 
+            serializer = SubscribeSerializer(author,
                                              context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
@@ -126,7 +125,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save()
 
-    @action(methods=['get', 'delete'], detail=True, 
+    @action(methods=['get', 'delete'], detail=True,
             permission_classes=[IsAuthenticated])
     def favorite(self, request, pk=None):
         user = self.request.user
@@ -138,7 +137,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             if not in_favorite:
                 favorite = Favorite.objects.create(user=user, recipe=recipe)
                 serializer = FavoriteSerializer(favorite.recipe)
-                return Response(data=serializer.data, 
+                return Response(data=serializer.data,
                                 status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
             if not in_favorite:
@@ -147,21 +146,21 @@ class RecipesViewSet(viewsets.ModelViewSet):
             in_favorite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["get", "delete"], 
+    @action(detail=True, methods=["get", "delete"],
             permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
-        in_shopping_cart = ShoppingCart.objects.filter(user=user, 
+        in_shopping_cart = ShoppingCart.objects.filter(user=user,
                                                        recipe=recipe)
         if user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if request.method == 'GET':
             if not in_shopping_cart:
-                shopping_cart = ShoppingCart.objects.create(user=user, 
+                shopping_cart = ShoppingCart.objects.create(user=user,
                                                             recipe=recipe)
                 serializer = ShoppingCartSerializer(shopping_cart.recipe)
-                return Response(data=serializer.data, 
+                return Response(data=serializer.data,
                                 status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
             if not in_shopping_cart:
@@ -170,7 +169,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             in_shopping_cart.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(methods=['get'], detail=False, 
+    @action(methods=['get'], detail=False,
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         """Скачать список покупок."""

@@ -6,5 +6,5 @@ class IsAuthorAdminOrReadOnly(permissions.BasePermission):
         return (request.user.is_authenticated and (
                 request.user.is_superuser or
                 obj.author == request.user or
-                request.method == 'POST'
-        )) or request.method in permissions.SAFE_METHODS
+                request.method == 'POST')
+                ) or request.method in permissions.SAFE_METHODS

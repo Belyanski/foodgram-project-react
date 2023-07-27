@@ -16,7 +16,7 @@ User = get_user_model()
 
 class CustomUserCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
-        fields = ('email', 'id', 'username', 
+        fields = ('email', 'id', 'username',
                   'first_name', 'last_name', 'password')
 
 
@@ -25,12 +25,12 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        return (not user.is_anonymous 
+        return (not user.is_anonymous
                 and Subscribe.objects.filter(user=user, author=obj).exists())
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 
+        fields = ('email', 'id', 'username',
                   'first_name', 'last_name', 'is_subscribed', )
 
 
@@ -55,17 +55,17 @@ class SubscribeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
-                   'is_subscribed', 'recipes', 'recipes_count', )
+                  'is_subscribed', 'recipes', 'recipes_count', )
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        return (not user.is_anonymous 
+        return (not user.is_anonymous
                 and Subscribe.objects.filter(user=user, author=obj).exists())
 
     def get_recipes(self, obj):
         limit = self.context['request'].query_params.get('recipes_limit')
         recipes = (
-            obj.recipes.all()[:int(limit)] 
+            obj.recipes.all()[:int(limit)]
             if limit is not None else obj.recipes.all()
         )
         return SubscriptionsRecipeSerializer(recipes, many=True).data
@@ -116,32 +116,32 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients', 
-                  'is_favorited', 'is_in_shopping_cart', 'name', 
+        fields = ('id', 'tags', 'author', 'ingredients',
+                  'is_favorited', 'is_in_shopping_cart', 'name',
                   'image', 'text', 'cooking_time')
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
-        return (not user.is_anonymous 
+        return (not user.is_anonymous
                 and Favorite.objects.filter(user=user, recipe=obj).exists())
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
-        return (not user.is_anonymous 
-                and Recipe.objects.filter(shopping_cart__user=user, 
+        return (not user.is_anonymous
+                and Recipe.objects.filter(shopping_cart__user=user,
                                           id=obj.id).exists())
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), 
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                               many=True)
     ingredients = IngredientRecipeCreateSerializer(many=True)
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('ingredients', 'tags', 'image', 
+        fields = ('ingredients', 'tags', 'image',
                   'name', 'text', 'cooking_time', 'author')
 
     def validate_ingredients(self, data):
@@ -158,10 +158,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ingredient_id = ingredient['id']
             amount = ingredient['amount']
             if IngredientRecipe.objects.filter(
-                recipe=recipe, ingredient=ingredient_id).exists():
+                recipe=recipe, ingredient=ingredient_id
+                                              ).exists():
                 amount += F('amount')
             IngredientRecipe.objects.update_or_create(
-                recipe=recipe, ingredient=ingredient_id, 
+                recipe=recipe, ingredient=ingredient_id,
                 defaults={'amount': amount})
 
     def create(self, validated_data):
@@ -183,7 +184,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         instance.image = validated_data.get('image', instance.image)
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get('cooking_time', 
+        instance.cooking_time = validated_data.get('cooking_time',
                                                    instance.cooking_time)
 
         tags_data = validated_data.pop('tags')
@@ -198,9 +199,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for ingredient in ingredients_data:
             ingredient_id = ingredient.get('id')
             amount = ingredient.get('amount')
-            ingredient_object = get_object_or_404(Ingredient, 
+            ingredient_object = get_object_or_404(Ingredient,
                                                   id=ingredient_id)
-            instance.ingredients.add(ingredient_object, 
+            instance.ingredients.add(ingredient_object,
                                      through_defaults={'amount': amount})
 
         instance.save()

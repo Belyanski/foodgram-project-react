@@ -17,5 +17,5 @@ class Command(BaseCommand):
                     ingredients_to_create.append(ingredient)
 
             Ingredient.objects.bulk_create(ingredients_to_create)
-            
+
         print('Загрузка завершена!')

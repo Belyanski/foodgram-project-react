@@ -18,4 +18,3 @@ class Command(BaseCommand):
             Tag.objects.bulk_create(tags_to_create)
 
         print('Загрузка завершена!')
-
