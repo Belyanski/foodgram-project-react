@@ -175,7 +175,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ingredient_id = get_object_or_404(Ingredient, id=id)
             IngredientRecipe.objects.create(
                 recipe=recipe, ingredient=ingredient_id, amount=amount
-                )
+            )
             recipe.save()
         return recipe
 
