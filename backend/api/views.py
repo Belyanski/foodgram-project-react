@@ -56,17 +56,17 @@ class CustomUserViewSet(UserViewSet):
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get'],
-            permission_classes=[IsAuthenticated])
+    @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         user = request.user
-        queryset = User.objects.filter(follower__user=user)
+        queryset = User.objects.filter(following__user=user)
         pages = self.paginate_queryset(queryset)
-        serializer = SubscribeSerializer(pages, many=True,
-                                         context={'request': request})
+        serializer = SubscribeSerializer(
+            pages, many=True, context={'request': request}
+        )
         return self.get_paginated_response(serializer.data)
 
-    @action(methods=['get', 'delete'], detail=True,
+    @action(methods=['post', 'delete'], detail=True,
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, id):
         user = self.request.user
@@ -74,7 +74,7 @@ class CustomUserViewSet(UserViewSet):
         subscribe = Subscribe.objects.filter(user=user, author=author)
         if user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if request.method == 'GET':
+        if request.method == 'POST':
             if subscribe.exists():
                 data = {'errors':
                         'You are already subscribed to this author.'}
