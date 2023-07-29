@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 
@@ -8,10 +7,9 @@ from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 
 from recipes.models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag
-from users.models import Subscribe
+from users.models import Subscribe, User
 
 
-User = get_user_model()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):

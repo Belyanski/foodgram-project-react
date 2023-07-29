@@ -17,9 +17,8 @@ from recipes.models import (
     Recipe,
     ShoppingCart,
     Tag,
-    User,
 )
-from users.models import Subscribe
+from users.models import Subscribe, User
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import RetrieveListViewSet
 from .permissions import IsAuthorAdminOrReadOnly
