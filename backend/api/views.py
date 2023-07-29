@@ -1,5 +1,6 @@
 import csv
 
+from django.contrib.auth.hashers import make_password
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -26,7 +27,6 @@ from .serializers import (
     CustomUserSerializer,
     FavoriteSerializer,
     IngredientSerializer,
-    PasswordSerializer,
     RecipeCreateSerializer,
     RecipeListSerializer,
     ShoppingCartSerializer,
@@ -45,15 +45,16 @@ class CustomUserViewSet(UserViewSet):
         user = self.request.user
         if user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = PasswordSerializer(data=request.data,
-                                        context={'request': request})
-        if serializer.is_valid():
-            user.set_password(serializer.data['new_password'])
-            user.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(serializer.errors,
+
+        new_password = request.data.get('new_password')
+        if not new_password:
+            return Response({'new_password': ['This field is required.']},
                             status=status.HTTP_400_BAD_REQUEST)
+
+        user.password = make_password(new_password)
+        user.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):

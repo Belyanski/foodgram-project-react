@@ -6,7 +6,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 
-from recipes.models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag
+from recipes.models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag, ShoppingCart
 from users.models import Subscribe, User
 
 
@@ -30,11 +30,6 @@ class CustomUserSerializer(UserSerializer):
         model = User
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name', 'is_subscribed', )
-
-
-class PasswordSerializer(serializers.Serializer):
-    current_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True)
 
 
 class SubscriptionsRecipeSerializer(serializers.ModelSerializer):
@@ -107,8 +102,8 @@ class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
 class RecipeListSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     author = CustomUserSerializer()
-    ingredients = IngredientRecipeListSerializer(many=True)
-
+    ingredients = IngredientRecipeListSerializer(many=True,
+                                                 source='ingredient_recipe')
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -126,8 +121,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
         return (not user.is_anonymous
-                and Recipe.objects.filter(shopping_cart__user=user,
-                                          id=obj.id).exists())
+                and ShoppingCart.objects.filter(user=user, 
+                                                recipe=obj).exists())
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
