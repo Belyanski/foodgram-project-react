@@ -5,20 +5,24 @@ from django.db import models
 User = get_user_model()
 
 
+MAX_LENGTH_STRING = 200
+MAX_LENGTH_COLOR = 7
+
+
 class Tag(models.Model):
     """Модель рецептов."""
     name = models.CharField(
         'Название',
-        max_length=200,
+        max_length=MAX_LENGTH_STRING,
         unique=True
     )
     color = models.CharField(
         'Цвет',
-        max_length=7,
+        max_length=MAX_LENGTH_COLOR,
         unique=True)
     slug = models.SlugField(
         'Ссылка',
-        max_length=200,
+        max_length=MAX_LENGTH_STRING,
         unique=True)
 
     class Meta:
@@ -32,10 +36,10 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Модель ингредиентов."""
-    name = models.CharField('Название', max_length=200)
+    name = models.CharField('Название', max_length=MAX_LENGTH_STRING)
     measurement_unit = models.CharField(
         'Единица измерения',
-        max_length=200
+        max_length=MAX_LENGTH_STRING
     )
 
     class Meta:
@@ -57,7 +61,7 @@ class Recipe(models.Model):
     )
     name = models.CharField(
         'Название',
-        max_length=200
+        max_length=MAX_LENGTH_STRING
     )
     image = models.ImageField(
         'Картинка',
