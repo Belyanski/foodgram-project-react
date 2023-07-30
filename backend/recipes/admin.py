@@ -1,11 +1,9 @@
 from django.contrib import admin
 
-from .models import (Favorite,
-                     Ingredient,
-                     IngredientRecipe,
-                     Recipe,
-                     ShoppingCart,
-                     Tag)
+from .models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                     ShoppingCart, Tag)
+
+MININUN_NUM = 1
 
 
 @admin.register(Tag)
@@ -19,6 +17,12 @@ class TagAdmin(admin.ModelAdmin):
 class IngredientRecipeInline(admin.TabularInline):
     """Модель IngredientRecipe в админке."""
     model = IngredientRecipe
+    min_num = MININUN_NUM
+    validate_min = True
+
+    extra = MININUN_NUM
+
+    
 
 
 @admin.register(Ingredient)

@@ -11,30 +11,23 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from recipes.models import (
-    Favorite,
-    Ingredient,
-    IngredientRecipe,
-    Recipe,
-    ShoppingCart,
-    Tag,
-)
 from users.models import Subscribe, User
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                            ShoppingCart, Tag)
+
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import RetrieveListViewSet
 from .permissions import IsAuthorAdminOrReadOnly
-from .serializers import (
-    CustomUserSerializer,
-    FavoriteSerializer,
-    IngredientSerializer,
-    RecipeCreateSerializer,
-    RecipeListSerializer,
-    ShoppingCartSerializer,
-    SubscribeSerializer,
-    TagSerializer,
-)
+from .serializers import (CustomUserSerializer, FavoriteSerializer,
+                          IngredientSerializer, RecipeCreateSerializer,
+                          RecipeListSerializer, ShoppingCartSerializer,
+                          SubscribeSerializer, TagSerializer)
 
 
+# Я искренне пытался сделать через ListAPIView
+# Но посыпался декоратор @action :( с таким трейсбеком
+# AttributeError: type object
+# 'CustomUserViewSet' has no attribute 'get_extra_actions'
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
@@ -119,13 +112,10 @@ class RecipesViewSet(viewsets.ModelViewSet):
             return RecipeListSerializer
         return RecipeCreateSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
     def perform_update(self, serializer):
         serializer.save()
 
-    @action(methods=['get', 'delete'], detail=True,
+    @action(methods=['post', 'delete'], detail=True,
             permission_classes=[IsAuthenticated])
     def favorite(self, request, pk=None):
         user = self.request.user
@@ -133,7 +123,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         in_favorite = Favorite.objects.filter(user=user, recipe=recipe)
         if user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if request.method == 'GET':
+        if request.method == 'POST':
             if not in_favorite:
                 favorite = Favorite.objects.create(user=user, recipe=recipe)
                 serializer = FavoriteSerializer(favorite.recipe)

@@ -1,16 +1,13 @@
 from django.db.models import F
 from django.shortcuts import get_object_or_404
-
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
+from drf_extra_fields.fields import Base64ImageField
 
-from recipes.models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag, ShoppingCart
 from users.models import Subscribe, User
-
-
-
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                            ShoppingCart, Tag)
 
 class CustomUserCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
@@ -127,24 +124,42 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
-                                              many=True)
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
     ingredients = IngredientRecipeCreateSerializer(many=True)
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('ingredients', 'tags', 'image',
-                  'name', 'text', 'cooking_time', 'author')
+        fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time', 'author')
+
+    def validate(self, data):
+        self.validate_tags(data)
+        self.validate_ingredients(data)
+        self.validate_cooking_time(data)
+        return data
+
+    def validate_tags(self, data):
+        tags = data.get('tags')
+        if not tags:
+            raise ValidationError('Нужно выбрать хотя бы один тег!')
+        if len(set(tags)) < len(tags):
+            raise ValidationError('Теги должны быть уникальными!')
 
     def validate_ingredients(self, data):
-        ingredients = self.initial_data.get('ingredients')
+        ingredients = data.get('ingredients')
         if not ingredients:
-            raise ValidationError('Нужно выбрать минимум 1 ингридиент!')
+            raise ValidationError('Нужно выбрать хотя бы один ингредиент!')
+        if len(set((ingredient['ingredient'] for ingredient in ingredients))) < len(ingredients):
+            raise ValidationError('Ингредиенты должны быть уникальными!')
         for ingredient in ingredients:
-            if int(ingredient['amount']) <= 0:
-                raise ValidationError('Количество должно быть положительным!')
-        return data
+            amount = ingredient.get('amount')
+            if amount is None or amount <= 0:
+                raise ValidationError('Количество ингредиента должно быть больше нуля!')
+
+    def validate_cooking_time(self, data):
+        cooking_time = data.get('cooking_time')
+        if cooking_time is None or cooking_time <= 0:
+            raise ValidationError('Время приготовления должно быть больше нуля!')
 
     def add_recipe_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
@@ -161,24 +176,30 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = Recipe(**validated_data)
+        recipe.save()
         recipe.tags.set(tags)
-        for ingredient in ingredients:
-            id = ingredient.get('id')
-            amount = ingredient.get('amount')
-            ingredient_id = get_object_or_404(Ingredient, id=id)
-            IngredientRecipe.objects.create(
-                recipe=recipe, ingredient=ingredient_id, amount=amount
+
+        # Подготавливаем список объектов IngredientRecipe для bulk_create
+        ingredient_recipe_list = [
+            IngredientRecipe(
+                recipe=recipe,
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount']
             )
-            recipe.save()
+            for ingredient in ingredients
+        ]
+
+        # Используем bulk_create для создания всех объектов IngredientRecipe одним запросом
+        IngredientRecipe.objects.bulk_create(ingredient_recipe_list)
+
         return recipe
 
     def update(self, instance, validated_data):
-        instance.image = validated_data.get('image', instance.image)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get('cooking_time',
-                                                   instance.cooking_time)
+        instance.image = validated_data['image']
+        instance.name = validated_data['name']
+        instance.text = validated_data['text']
+        instance.cooking_time = validated_data['cooking_time']
 
         tags_data = validated_data.pop('tags')
         ingredients_data = validated_data.pop('ingredients')
@@ -190,15 +211,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             instance.tags.add(tag)
 
         for ingredient in ingredients_data:
-            ingredient_id = ingredient.get('id')
-            amount = ingredient.get('amount')
-            ingredient_object = get_object_or_404(Ingredient,
+            ingredient_id = ingredient['id']
+            amount = ingredient['amount']
+            ingredient_object = get_object_or_404(Ingredient, 
                                                   id=ingredient_id)
-            instance.ingredients.add(ingredient_object,
+            instance.ingredients.add(ingredient_object, 
                                      through_defaults={'amount': amount})
 
         instance.save()
         return instance
+
 
     def to_representation(self, instance):
         serializer = RecipeListSerializer(instance, context=self.context)

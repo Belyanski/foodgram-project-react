@@ -1,6 +1,11 @@
 import csv
+import logging
+
 from django.core.management.base import BaseCommand
+
 from recipes.models import Tag
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -16,5 +21,4 @@ class Command(BaseCommand):
                     tags_to_create.append(tag)
 
             Tag.objects.bulk_create(tags_to_create)
-
-        print('Загрузка завершена!')
+            logger.info('Загрузка тегов завершена!')

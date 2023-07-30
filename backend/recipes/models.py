@@ -1,8 +1,9 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
-from users.models import User
 from colorfield.fields import ColorField
+from django.core.validators import MaxValueValidator, MinValueValidator
 
+from django.db import models
+
+from users.models import User
 
 MAX_LENGTH_STRING = 200
 MAX_LENGTH_COLOR = 7
@@ -48,9 +49,6 @@ class Ingredient(models.Model):
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
         unique_together = [['name', 'measurement_unit']]
-
-    def __str__(self):
-        return self.name
 
     def __str__(self):
         return self.name
