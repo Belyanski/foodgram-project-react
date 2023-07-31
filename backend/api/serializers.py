@@ -1,13 +1,15 @@
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from drf_extra_fields.fields import Base64ImageField
+from recipes.models import (Favorite, Ingredient,
+                            IngredientRecipe, Recipe,
+                            ShoppingCart, Tag)
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
-from drf_extra_fields.fields import Base64ImageField
 
 from users.models import Subscribe, User
-from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                            ShoppingCart, Tag)
+
 
 class CustomUserCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
@@ -92,8 +94,8 @@ class IngredientRecipeListSerializer(serializers.ModelSerializer):
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Ingredient
-        fields = ('id', 'amount', )
+        model = IngredientRecipe
+        fields = ('ingredient', 'amount', )
 
 
 class RecipeListSerializer(serializers.ModelSerializer):
@@ -118,19 +120,21 @@ class RecipeListSerializer(serializers.ModelSerializer):
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
         return (not user.is_anonymous
-                and ShoppingCart.objects.filter(user=user, 
+                and ShoppingCart.objects.filter(user=user,
                                                 recipe=obj).exists())
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
+                                              many=True)
     ingredients = IngredientRecipeCreateSerializer(many=True)
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time', 'author')
+        fields = ('ingredients', 'tags', 'image',
+                  'name', 'text', 'cooking_time', 'author')
 
     def validate(self, data):
         self.validate_tags(data)
@@ -140,26 +144,33 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def validate_tags(self, data):
         tags = data.get('tags')
-        if not tags:
-            raise ValidationError('Нужно выбрать хотя бы один тег!')
+        if not tags or len(tags) == 0:
+            raise serializers.ValidationError('Нужно выбрать'
+                                              ' хотя бы один тег!')
         if len(set(tags)) < len(tags):
-            raise ValidationError('Теги должны быть уникальными!')
+            raise serializers.ValidationError('Теги должны быть уникальными!')
+        return data
 
     def validate_ingredients(self, data):
         ingredients = data.get('ingredients')
         if not ingredients:
             raise ValidationError('Нужно выбрать хотя бы один ингредиент!')
-        if len(set((ingredient['ingredient'] for ingredient in ingredients))) < len(ingredients):
+
+        if len(set((ingredient['ingredient']
+                    for ingredient in ingredients))) < len(ingredients):
             raise ValidationError('Ингредиенты должны быть уникальными!')
+
         for ingredient in ingredients:
             amount = ingredient.get('amount')
             if amount is None or amount <= 0:
-                raise ValidationError('Количество ингредиента должно быть больше нуля!')
+                raise ValidationError('Количество ингредиента'
+                                      ' должно быть больше нуля!')
 
-    def validate_cooking_time(self, data):
-        cooking_time = data.get('cooking_time')
-        if cooking_time is None or cooking_time <= 0:
-            raise ValidationError('Время приготовления должно быть больше нуля!')
+    def validate_cooking_time(self, value):
+        if value is None or value <= 0:
+            raise serializers.ValidationError('Время приготовления'
+                                              ' должно быть больше нуля!')
+        return value
 
     def add_recipe_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
@@ -176,11 +187,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe(**validated_data)
-        recipe.save()
-        recipe.tags.set(tags)
 
-        # Подготавливаем список объектов IngredientRecipe для bulk_create
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.set(tags)
         ingredient_recipe_list = [
             IngredientRecipe(
                 recipe=recipe,
@@ -190,9 +199,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             for ingredient in ingredients
         ]
 
-        # Используем bulk_create для создания всех объектов IngredientRecipe одним запросом
         IngredientRecipe.objects.bulk_create(ingredient_recipe_list)
-
         return recipe
 
     def update(self, instance, validated_data):
@@ -213,14 +220,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for ingredient in ingredients_data:
             ingredient_id = ingredient['id']
             amount = ingredient['amount']
-            ingredient_object = get_object_or_404(Ingredient, 
+            ingredient_object = get_object_or_404(Ingredient,
                                                   id=ingredient_id)
-            instance.ingredients.add(ingredient_object, 
+            instance.ingredients.add(ingredient_object,
                                      through_defaults={'amount': amount})
 
         instance.save()
         return instance
-
 
     def to_representation(self, instance):
         serializer = RecipeListSerializer(instance, context=self.context)

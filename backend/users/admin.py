@@ -7,8 +7,8 @@ from .models import Subscribe, User
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     """Модель User в админке."""
-    list_display = ('id', 'username', 'first_name', 
-                    'last_name', 'email', 'get_recipe_count', 
+    list_display = ('id', 'username', 'first_name',
+                    'last_name', 'email', 'get_recipe_count',
                     'get_follower_count', 'password')
     list_filter = ('email', 'username')
 
@@ -23,9 +23,9 @@ class UserAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        queryset = queryset.annotate(recipe_count=Count('recipes', 
+        queryset = queryset.annotate(recipe_count=Count('recipes',
                                                         distinct=True))
-        queryset = queryset.annotate(follower_count=Count('follower', 
+        queryset = queryset.annotate(follower_count=Count('follower',
                                                           distinct=True))
         return queryset
 

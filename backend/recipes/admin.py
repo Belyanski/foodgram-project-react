@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+from .models import (Favorite, Ingredient,
+                     IngredientRecipe, Recipe,
                      ShoppingCart, Tag)
 
 MININUN_NUM = 1
@@ -21,8 +22,6 @@ class IngredientRecipeInline(admin.TabularInline):
     validate_min = True
 
     extra = MININUN_NUM
-
-    
 
 
 @admin.register(Ingredient)

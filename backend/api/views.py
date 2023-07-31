@@ -1,19 +1,21 @@
 import csv
 
 from django.contrib.auth.hashers import make_password
+from django.db import IntegrityError
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                            ShoppingCart, Tag)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
 
 from users.models import Subscribe, User
-from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                            ShoppingCart, Tag)
 
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import RetrieveListViewSet
@@ -25,7 +27,7 @@ from .serializers import (CustomUserSerializer, FavoriteSerializer,
 
 
 # Я искренне пытался сделать через ListAPIView
-# Но посыпался декоратор @action :( с таким трейсбеком
+# Но посыпались функции с декоратором @action :( с таким трейсбеком
 # AttributeError: type object
 # 'CustomUserViewSet' has no attribute 'get_extra_actions'
 class CustomUserViewSet(UserViewSet):
@@ -64,24 +66,56 @@ class CustomUserViewSet(UserViewSet):
     def subscribe(self, request, id):
         user = self.request.user
         author = get_object_or_404(User, id=id)
-        subscribe = Subscribe.objects.filter(user=user, author=author)
+
         if user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if request.method == 'POST':
-            if subscribe.exists():
-                data = {'errors':
-                        'You are already subscribed to this author.'}
-                return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
-            Subscribe.objects.create(user=user, author=author)
-            serializer = SubscribeSerializer(author,
-                                             context={'request': request})
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        elif request.method == 'DELETE':
-            if not subscribe.exists():
-                data = {'errors': 'You are not subscribed to this author.'}
-                return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
-            subscribe.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        try:
+            if request.method == 'POST':
+                if user == author:
+                    data = {'errors': 'Вы не можете подписаться на себя.'}
+                    return Response(data=data,
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+                Subscribe.objects.create(user=user, author=author)
+                serializer = SubscribeSerializer(author,
+                                                 context={'request': request})
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+
+            elif request.method == 'DELETE':
+                subscribe = Subscribe.objects.filter(user=user, author=author)
+                if subscribe.exists():
+                    subscribe.delete()
+                    return Response(status=status.HTTP_204_NO_CONTENT)
+                else:
+                    data = {'errors': 'Вы не можете подписаться.'}
+                    return Response(data=data,
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+        except IntegrityError:
+            data = {'errors': 'Вы уже подписаны.'}
+            return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated])
+    def me(self, request):
+        user = request.user
+        if user.is_authenticated:
+            serializer = CustomUserSerializer(
+                user, context=self.get_serializer_context()
+                )
+            return Response(serializer.data, status=HTTP_200_OK)
+        else:
+            return Response({'detail': 'Учетные данные не предоставлены.'},
+                            status=HTTP_401_UNAUTHORIZED)
+
+    @me.mapping.post
+    def me_post(self, request):
+        return self.me(request)
 
 
 class TagsViewSet(RetrieveListViewSet):
@@ -136,7 +170,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             in_favorite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["get", "delete"],
+    @action(detail=True, methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         user = self.request.user
@@ -145,7 +179,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
                                                        recipe=recipe)
         if user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if request.method == 'GET':
+        if request.method == 'POST':
             if not in_shopping_cart:
                 shopping_cart = ShoppingCart.objects.create(user=user,
                                                             recipe=recipe)
@@ -162,18 +196,22 @@ class RecipesViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False,
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
-        """Скачать список покупок."""
+        """Скачать список покупок для текущего пользователя."""
         user = self.request.user
         if user.is_anonymous:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        recipes = Recipe.objects.filter(author=user)
+
         ingredients = IngredientRecipe.objects.filter(
-            recipe__shopping_cart__user=request.user
+            recipe__in=recipes
         ).values(
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(ingredient_amount=Sum('amount')).values_list(
             'ingredient__name', 'ingredient__measurement_unit',
             'ingredient_amount'
         )
+
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = ('attachment; '
                                            'filename="Shoppingcart.csv"')

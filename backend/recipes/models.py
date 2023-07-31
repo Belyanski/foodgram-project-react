@@ -1,6 +1,5 @@
 from colorfield.fields import ColorField
 from django.core.validators import MaxValueValidator, MinValueValidator
-
 from django.db import models
 
 from users.models import User
@@ -119,10 +118,11 @@ class IngredientRecipe(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         'Количество',
+        default=1,
         validators=[
             MinValueValidator(1, message='Выберете хотя бы 1 ингредиент.'),
             MaxValueValidator(100, message='Максимальное количество '
-                              'ингредиента - 100.')
+                                           'ингредиента - 100.')
         ]
     )
 
@@ -131,7 +131,8 @@ class IngredientRecipe(models.Model):
         verbose_name_plural = 'Количество ингредиентов'
 
     def __str__(self):
-        return f'{self.ingredient.name} - {self.amount} {self.ingredient.measurement_unit}'
+        return (f'{self.ingredient.name} - {self.amount}'
+                f'{self.ingredient.measurement_unit}')
 
 
 class BaseRelation(models.Model):
@@ -150,10 +151,12 @@ class BaseRelation(models.Model):
     class Meta:
         abstract = True
 
+
 class Favorite(BaseRelation):
     class Meta:
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
+
 
 class ShoppingCart(BaseRelation):
     class Meta:

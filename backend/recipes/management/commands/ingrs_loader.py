@@ -20,6 +20,5 @@ class Command(BaseCommand):
                     ingredient = Ingredient(name=name, measurement_unit=unit)
                     ingredients_to_create.append(ingredient)
 
-
             Ingredient.objects.bulk_create(ingredients_to_create)
             logger.info('Загрузка ингредиентов завершена!')
