@@ -106,7 +106,8 @@ class CustomUserViewSet(UserViewSet):
         user = request.user
         if user.is_authenticated:
             serializer = CustomUserSerializer(
-                user, context=self.get_serializer_context()
+                user,
+                context=self.get_serializer_context()
                 )
             return Response(serializer.data, status=HTTP_200_OK)
         else:
