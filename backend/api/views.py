@@ -108,7 +108,7 @@ class CustomUserViewSet(UserViewSet):
             serializer = CustomUserSerializer(
                 user,
                 context=self.get_serializer_context()
-                )
+            )
             return Response(serializer.data, status=HTTP_200_OK)
         else:
             return Response({'detail': 'Учетные данные не предоставлены.'},
