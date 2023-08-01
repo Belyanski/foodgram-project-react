@@ -24,8 +24,8 @@ class UserAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         queryset = queryset.annotate(recipe_count=Count('recipes',
-                                                        distinct=True))
-        queryset = queryset.annotate(follower_count=Count('follower',
+                                                        distinct=True),
+                                     follower_count=Count('follower',
                                                           distinct=True))
         return queryset
 

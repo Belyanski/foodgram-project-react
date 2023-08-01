@@ -26,10 +26,6 @@ from .serializers import (CustomUserSerializer, FavoriteSerializer,
                           SubscribeSerializer, TagSerializer)
 
 
-# Я искренне пытался сделать через ListAPIView
-# Но посыпались функции с декоратором @action :( с таким трейсбеком
-# AttributeError: type object
-# 'CustomUserViewSet' has no attribute 'get_extra_actions'
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer

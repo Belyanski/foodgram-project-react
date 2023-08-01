@@ -2,12 +2,12 @@ from django.db.models import F
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Favorite, Ingredient,
-                            IngredientRecipe, Recipe,
-                            ShoppingCart, Tag)
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 
+from recipes.models import (Favorite, Ingredient,
+                            IngredientRecipe, Recipe,
+                            ShoppingCart, Tag)
 from users.models import Subscribe, User
 
 
@@ -203,16 +203,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        instance.image = validated_data['image']
-        instance.name = validated_data['name']
-        instance.text = validated_data['text']
-        instance.cooking_time = validated_data['cooking_time']
-
-        tags_data = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
-
         instance.tags.clear()
         instance.ingredients.clear()
+        tags_data = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients')
+        (instance.image, instance.name,
+         instance.text, instance.cooking_time) = validated_data.values()
 
         for tag in tags_data:
             instance.tags.add(tag)
