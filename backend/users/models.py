@@ -7,10 +7,6 @@ MAX_LENGTH_STRING = 150
 MAX_LENGTH_EMAIL = 254
 
 
-MAX_LENGTH_STRING = 150
-MAX_LENGTH_EMAIL = 254
-
-
 class User(AbstractUser):
     """Модель пользователя."""
     USERNAME_FIELD = 'email'

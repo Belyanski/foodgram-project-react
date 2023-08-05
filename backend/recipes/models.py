@@ -12,11 +12,11 @@ MAX_LENGTH_COLOR = 7
 
 class Ingredient(models.Model):
     name = models.CharField(
-        'Название', 
+        'Название',
         max_length=MAX_LENGTH_STRING
         )
     measurement_unit = models.CharField(
-        'Единица измерения', 
+        'Единица измерения',
         max_length=MAX_LENGTH_STRING
         )
 
@@ -58,7 +58,7 @@ class Tag(models.Model):
 
 class Recipe(models.Model):
     name = models.CharField(
-        'Название', 
+        'Название',
         max_length=MAX_LENGTH_STRING
         )
     author = models.ForeignKey(
@@ -119,8 +119,8 @@ class IngredientInRecipe(models.Model):
         'Количество',
         validators=[
             MinValueValidator(1, message='Выберете хотя бы 1 ингредиент.'),
-            MaxValueValidator(100, message='Максимальное количество '
-                                           'ингредиента - 100.')
+            MaxValueValidator(3000, message='Максимальное количество '
+                                            'ингредиента - 3000 г.')
         ]
     )
 
