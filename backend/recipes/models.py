@@ -1,14 +1,24 @@
-from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, RegexValidator
+from colorfield.fields import ColorField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 
-User = get_user_model()
+from users.models import User
+
+
+MAX_LENGTH_STRING = 200
+MAX_LENGTH_COLOR = 7
 
 
 class Ingredient(models.Model):
-    name = models.CharField('Название', max_length=200)
-    measurement_unit = models.CharField('Единица измерения', max_length=200)
+    name = models.CharField(
+        'Название', 
+        max_length=MAX_LENGTH_STRING
+        )
+    measurement_unit = models.CharField(
+        'Единица измерения', 
+        max_length=MAX_LENGTH_STRING
+        )
 
     class Meta:
         verbose_name = 'Ингредиент'
@@ -20,21 +30,25 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField('Название', unique=True, max_length=200)
-    color = models.CharField(
-        'Цветовой HEX-код',
-        unique=True,
-        max_length=7,
-        validators=[
-            RegexValidator(
-                regex='^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
-                message='Введенное значение не является цветом в формате HEX!'
-            )
-        ]
+    """Модель тегов."""
+    name = models.CharField(
+        'Название',
+        max_length=MAX_LENGTH_STRING,
+        unique=True
     )
-    slug = models.SlugField('Уникальный слаг', unique=True, max_length=200)
+    color = ColorField(
+        'Цвет',
+        max_length=MAX_LENGTH_COLOR,
+        unique=True
+    )
+    slug = models.SlugField(
+        'Ссылка',
+        max_length=MAX_LENGTH_STRING,
+        unique=True
+    )
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
@@ -43,11 +57,14 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
-    name = models.CharField('Название', max_length=200)
+    name = models.CharField(
+        'Название', 
+        max_length=MAX_LENGTH_STRING
+        )
     author = models.ForeignKey(
         User,
         related_name='recipes',
-        on_delete=models.SET_NULL,  # SET NULL?
+        on_delete=models.SET_NULL,
         null=True,
         verbose_name='Автор',
     )
@@ -58,7 +75,12 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         'Время приготовления',
-        validators=[MinValueValidator(1, message='Минимальное значение 1!')]
+        validators=[
+            MinValueValidator(1, message='Минимальное время '
+                              'приготовления 1 минута.'),
+            MaxValueValidator(1440, message='Максимальное время '
+                              'приготовления 1440 минут (1 день).')
+        ]
     )
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -95,7 +117,11 @@ class IngredientInRecipe(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         'Количество',
-        validators=[MinValueValidator(1, message='Минимальное количество 1!')]
+        validators=[
+            MinValueValidator(1, message='Выберете хотя бы 1 ингредиент.'),
+            MaxValueValidator(100, message='Максимальное количество '
+                                           'ингредиента - 100.')
+        ]
     )
 
     class Meta:

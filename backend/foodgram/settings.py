@@ -13,10 +13,6 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'nhu2HEtmpfSZbw0aO1lKA9vqGQT4sI!6CgX.MPy3')
 DEBUG = os.getenv('DEBUG', False) == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-#ALLOWED_HOSTS = ['*']
-
-#SECRET_KEY='django-insecure-s1i_mwj44^vdt!kus9!&mmwmqd)6vs_etgs8ixabh_n*higst8'
-#DEBUG=True
 
 
 INSTALLED_APPS = [
@@ -69,6 +65,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
+
 '''
 if DEBUG:
     DATABASES = {
@@ -100,7 +97,6 @@ DATABASES = {
             'PORT': os.getenv('DB_PORT', 5432)
         }
     }
-
 
 AUTH_USER_MODEL = 'users.User'
 
