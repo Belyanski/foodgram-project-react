@@ -87,6 +87,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
+            cd foodgram
+
             sudo rm -f .env        
             sudo touch .env
             sudo chmod 666 .env
@@ -100,14 +102,15 @@ jobs:
             sudo echo DB_HOST=${{ secrets.DB_HOST }} >> .env
             sudo echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             
-            sudo docker compose stop
+            cd infra
             
-            sudo docker compose rm backend
-            sudo docker compose pull backend
-            sudo docker compose rm frontend
-            sudo docker compose pull frontend
-            
-            sudo docker compose up -d --build
+            sudo docker compose -f docker-compose.production.yml pull
+            sudo docker compose -f docker-compose.production.yml down
+            sudo docker compose -f docker-compose.production.yml up -d
+            docker compose -f docker-compose.production.yml exec backend python manage.py migrate --noinput
+            docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
+            docker compose -f docker-compose.production.yml exec backend python manage.py ingrs_loader --noinput
+            docker compose -f docker-compose.production.yml exec backend python manage.py tags_loader --noinput
 
   send_message:
     name: Sending Telegram message
