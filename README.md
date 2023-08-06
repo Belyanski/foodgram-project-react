@@ -160,12 +160,12 @@ docker compose -f docker-compose.production.yml exec backend python manage.py ta
 	}
 <тут_настройки_ssl-сертификата>
 ```
-[Foodgram](https://foodkilogram.ddns.net/)
-[API Foodgram](https://foodkilogram.ddns.net/api/)
-[Документация Foodgram](https://foodkilogram.ddns.net/api/docs/)
-[Панель администратора и данные для входа(ревьюеру)](https://foodkilogram.ddns.net/admin/):
-```E-mail: written@and-directed.by```
-```Пароль: quentin_tarantino```
+<br>[Foodgram](https://foodkilogram.ddns.net/)</br>
+<br>[API Foodgram](https://foodkilogram.ddns.net/api/)</br>
+<br>[Документация Foodgram](https://foodkilogram.ddns.net/api/docs/)</br>
+<br>[Панель администратора и данные для входа(ревьюеру)](https://foodkilogram.ddns.net/admin/):</br>
+<br>```E-mail: written@and-directed.by```</br>
+<br>```Пароль: quentin_tarantino```</br>
 
 #### Автор работы
 [Ярослав Белянский](https://github.com/Belyanski)
