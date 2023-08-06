@@ -108,10 +108,6 @@ jobs:
             sudo docker compose -f docker-compose.production.yml pull
             sudo docker compose -f docker-compose.production.yml down
             sudo docker compose -f docker-compose.production.yml up -d
-            docker compose -f docker-compose.production.yml exec backend python manage.py migrate --noinput
-            docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
-            docker compose -f docker-compose.production.yml exec backend python manage.py ingrs_loader
-            docker compose -f docker-compose.production.yml exec backend python manage.py tags_loader
 
   send_message:
     name: Sending Telegram message
