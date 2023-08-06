@@ -1,4 +1,7 @@
+import re
+
 from colorfield.fields import ColorField
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
@@ -91,6 +94,12 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Теги'
     )
+
+    def clean(self):
+        super().clean()
+        if re.match(r'^[0-9\W]+$', self.name):
+            raise ValidationError('Название рецепта не может '
+                                  'состоять только из цифр или знаков.')
 
     class Meta:
         ordering = ['-id']
