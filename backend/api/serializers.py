@@ -213,6 +213,7 @@ class RecipeWriteSerializer(ModelSerializer):
         recipe.tags.set(tags)
         self.create_ingredients_amounts(recipe=recipe,
                                         ingredients=ingredients)
+        self.clean()
         return recipe
 
     @transaction.atomic
