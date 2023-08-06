@@ -2,9 +2,7 @@ from colorfield.fields import ColorField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
-
 from users.models import User
-
 
 MAX_LENGTH_STRING = 200
 MAX_LENGTH_COLOR = 7
@@ -14,11 +12,11 @@ class Ingredient(models.Model):
     name = models.CharField(
         'Название',
         max_length=MAX_LENGTH_STRING
-        )
+    )
     measurement_unit = models.CharField(
         'Единица измерения',
         max_length=MAX_LENGTH_STRING
-        )
+    )
 
     class Meta:
         verbose_name = 'Ингредиент'
@@ -60,7 +58,7 @@ class Recipe(models.Model):
     name = models.CharField(
         'Название',
         max_length=MAX_LENGTH_STRING
-        )
+    )
     author = models.ForeignKey(
         User,
         related_name='recipes',

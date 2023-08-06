@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-from .models import (Favorite, Ingredient,
-                     IngredientInRecipe, Recipe,
+from .models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                      ShoppingCart, Tag)
 
 MININUN_NUM = 1

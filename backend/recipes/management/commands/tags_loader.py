@@ -2,7 +2,6 @@ import csv
 import logging
 
 from django.core.management.base import BaseCommand
-
 from recipes.models import Tag
 
 logger = logging.getLogger(__name__)
