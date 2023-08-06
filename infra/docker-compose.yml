@@ -1,4 +1,4 @@
-version: '2.0'
+version: '2.5'
 
 services:
 
@@ -44,4 +44,3 @@ volumes:
   static_value:
   media_value:
   postgres_data:
-  redoc:
