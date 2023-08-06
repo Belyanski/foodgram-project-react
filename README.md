@@ -8,7 +8,7 @@
 
 ## Описание проекта
 Foodgram - это сайт, на котором пользователи могут публиковать рецепты, добавлять чужие рецепты в избранное и подписываться на публикации других авторов. Сервис «Список покупок» позволяет пользователям создавать список продуктов, которые нужно купить для приготовления выбранных блюд. 
-## Запуск проекта
+## Запуск проекта на локальной машине
 - Клонировать репозиторий и перейти в него в командной строке:
 ```
 git clone git@github.com:Belyanski/foodgram-project-react.git
@@ -81,5 +81,91 @@ Password (again): <повторите_ваш_пароль>
 - В директории **infra/** при запущеном Docker выполнить команду **docker-compose up**
 - Перейти в браузере по адресу http://localhost/api/docs/
 
-## Автор проекта
+## Запуск проекта на боевом сервере
+- В файле ```nginx.conf``` замените **ip сервера** и **домен** на свои
+- Предварительно авторизовавших в терминале на **DockerHub** (```docker login```) сбилдить и пушнуть образы  в директориях **backend** и **frontend**
+```
+docker build -t <ваше_имя_пользователя>/foodgram_backend . # в папке **backend**
+docker push <ваше_имя_пользователя>/foodgram_backend
+docker build -t <ваше_имя_пользователя>/foodgram_frontend .# в папке **frontend**
+docker push <ваше_имя_пользователя>/foodgram_frontend
+```
+В файлах **docker-compose.yml** и **docker-compose.production.yml** репозитория замените во всех ```image``` имеющиеся данные на свои ```<ваше_имя_пользователя>/<имя_образа>:latest```
+
+Подготовка сервера:
+- В домашней директории сервера создать папку **foodgram** ``` mkdir foodgram``` и перейти в нее ``` cd foodgram``` 
+- В директории **foodgram** создать папки **infra** и **docs**, также через ```mkdir```
+- В папке **docs** разместить файлы ```openapi-schema.yml``` и ```redoc.html``` из данного репозитерия 
+- В папке infra аналогичным способом разместить ```docker-compose.production.yml``` и ```nginx.conf```
+
+В **Settings** репозитория на **GitHub** в разделе```Secrets and variables```  создать следующие секреты:
+Для Django-проекта
+```
+SECRET_KEY                              # Секретный ключ Django-проекта
+DEBUG                                   # True или False
+ALLOWED_HOSTS                           # можно указать звездочку *
+```
+Примерные значения для БД PostgreSQL
+```
+POSTGRES_DB=                            # foodgram 
+POSTGRES_USER=                          # foodgram_user
+POSTGRES_PASSWORD=                      # foodgram_password
+DB_NAME=                                # foodgram
+DB_HOST=                                # db
+DB_PORT=                                # 5432
+```
+Данные для авторизации на DockerHub
+```
+DOCKER_PASSWORD                        # Пароль
+DOCKER_USERNAME                        # Логин
+```
+Для сервера
+```
+HOST                                   # Ip-адрес сервера
+SSH_KEY                                # SSH-ключ
+USER                                   # Имя пользователя
+PASSPHRASE                             # Секретная фраза(пароль)
+```
+Для уведомления в мессенджере Telegram
+```
+TELEGRAM_TOKEN                         # Токен вашего telgram-бота
+TELEGRAM_TO                            # Ваш id в Telegram
+```
+Отправьте изменения на **GitHub** следующими командами:
+```
+git add .
+git commit -m '<имя_коммита>'
+git pushh
+```
+В разделе **Actions** на **GitHub** вы можете отследить ход деплоя проекта на сервере. Или можно дождаться уведомления от вашего бота в **Telegram**.
+После успешного деплоя проекта на сервер в папке **infra** выполните следующие команды:
+```
+docker compose -f docker-compose.production.yml exec backend python manage.py migrate --noinput
+docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
+docker compose -f docker-compose.production.yml exec backend python manage.py ingrs_loader 
+docker compose -f docker-compose.production.yml exec backend python manage.py tags_loader
+```
+Измените настройки Nginx серверва на следующие:
+```
+	server_name <ваш_домен>;
+	
+	location / {
+	   proxy_set_header Host $http_host;
+	   proxy_pass http://127.0.0.1:8000;
+	}
+
+	location /admin/ {
+	   proxy_set_header Host $http_host;
+	   proxy_pass http://127.0.0.1:8000/admin;
+	}
+<тут_настройки_ssl-сертификата>
+```
+[Foodgram](https://foodkilogram.ddns.net/)
+[API Foodgram](https://foodkilogram.ddns.net/api/)
+[Документация Foodgram](https://foodkilogram.ddns.net/api/docs/)
+[Панель администратора и данные для входа(ревьюеру)](https://foodkilogram.ddns.net/admin/):
+```E-mail: written@and-directed.by```
+```Пароль: quentin_tarantino```
+
+#### Автор работы
 [Ярослав Белянский](https://github.com/Belyanski)
