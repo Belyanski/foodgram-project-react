@@ -135,7 +135,6 @@ class IngredientInRecipeWriteSerializer(ModelSerializer):
 
 
 class RecipeWriteSerializer(ModelSerializer):
-    name = CharField(required=True)
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                   many=True)
     author = CustomUserSerializer(read_only=True)
@@ -193,8 +192,8 @@ class RecipeWriteSerializer(ModelSerializer):
     def clean(self):
         super().clean()
         if re.match(r'^[0-9\W]+$', self.name):
-            raise ValidationError('Название рецепта не может '
-                                  'состоять только из цифр или знаков.')
+            raise ValidationError({'name': 'Название рецепта не может '
+                                   'состоять только из цифр или знаков.'})
 
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
