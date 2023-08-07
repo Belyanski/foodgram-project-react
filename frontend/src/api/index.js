@@ -160,17 +160,27 @@ class Api {
           ...this._headers,
           'authorization': `Token ${token}`
         },
-        body: JSON.stringify({
-          name,
-          image,
-          tags,
-          cooking_time,
-          text,
-          ingredients
-        })
-      }
-    ).then(this.checkResponse)
-  }
+    body: JSON.stringify({
+      name,
+      image,
+      tags,
+      cooking_time,
+      text,
+      ingredients
+    })
+  }).then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        if (data.name && data.name.length > 0) {
+          throw new Error(data.name[0]);
+        } else {
+          throw new Error('Произошла ошибка при создании рецепта.');
+        }
+      });
+    }
+    return response.json();
+  });
+}
 
   updateRecipe ({
     name,
