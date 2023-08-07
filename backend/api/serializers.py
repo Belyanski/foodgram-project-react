@@ -9,7 +9,7 @@ from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.serializers import CharField, ModelSerializer
+from rest_framework.serializers import ModelSerializer
 from users.models import Subscribe, User
 
 
@@ -135,7 +135,6 @@ class IngredientInRecipeWriteSerializer(ModelSerializer):
 
 
 class RecipeWriteSerializer(ModelSerializer):
-    name = CharField(required=True)
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                   many=True)
     author = CustomUserSerializer(read_only=True)
@@ -190,11 +189,11 @@ class RecipeWriteSerializer(ModelSerializer):
             tags_list.append(tag)
         return value
 
-    def clean(self):
-        super().clean()
-        if re.match(r'^[0-9\W]+$', self.name):
-            raise ValidationError({'name': 'Название рецепта не может '
-                                   'состоять только из цифр или знаков.'})
+    def validate_name(self, value):
+        if re.match(r'^[0-9\W]+$', value):
+            raise ValidationError({'name': 'Название рецепта не может'
+                                   ' состоять только из цифр или знаков.'})
+        return value
 
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
@@ -210,6 +209,7 @@ class RecipeWriteSerializer(ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
+        self.validate_name(validated_data.get('name', ''))
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.create_ingredients_amounts(recipe=recipe,
@@ -220,6 +220,7 @@ class RecipeWriteSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
+        self.validate_name(validated_data.get('name', ''))
         instance = super().update(instance, validated_data)
         instance.tags.clear()
         instance.tags.set(tags)
