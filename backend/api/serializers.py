@@ -154,8 +154,8 @@ class RecipeWriteSerializer(ModelSerializer):
             'cooking_time',
         )
 
-    def validate_ingredients(self, value):
-        ingredients = value
+    def validate_ingredients(self, data):
+        ingredients = data
         if not ingredients:
             raise ValidationError({
                 'ingredients': 'Нужен хотя бы один ингредиент!'
@@ -172,10 +172,10 @@ class RecipeWriteSerializer(ModelSerializer):
                     'amount': 'Количество ингредиента должно быть больше 0!'
                 })
             ingredients_list.append(ingredient)
-        return value
+        return data
 
-    def validate_tags(self, value):
-        tags = value
+    def validate_tags(self, data):
+        tags = data
         if not tags:
             raise ValidationError({
                 'tags': 'Нужно выбрать хотя бы один тег!'
@@ -187,13 +187,13 @@ class RecipeWriteSerializer(ModelSerializer):
                     'tags': 'Теги должны быть уникальными!'
                 })
             tags_list.append(tag)
-        return value
+        return data
 
-    def validate_name(self, value):
-        if re.match(r'^[0-9\W]+$', value):
+    def validate_name(self, data):
+        if re.match(r'^[0-9\W]+$', data):
             raise ValidationError({'name': 'Название рецепта не может'
                                    ' состоять только из цифр или знаков.'})
-        return value
+        return data
 
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
