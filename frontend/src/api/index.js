@@ -4,17 +4,14 @@ class Api {
     this._headers = headers
   }
 
-  checkResponse(res) {
-    if (res.status === 204) {
-      return Promise.resolve(res)
-    }
-    if (res.ok) {
-      return res.json()
-    } else {
-      return res.json().then(error => {
-        throw new Error(error.message || 'Произошла ошибка: ' + JSON.stringify(error))
-      })
-    }
+  checkResponse (res) {
+    return new Promise((resolve, reject) => {
+      if (res.status === 204) {
+        return resolve(res)
+      }
+      const func = res.status < 400 ? resolve : reject
+      res.json().then(data => func(data))
+    })
   }
 
   checkFileDownloadResponse (res) {
