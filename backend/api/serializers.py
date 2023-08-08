@@ -191,8 +191,8 @@ class RecipeWriteSerializer(ModelSerializer):
 
     def validate_name(self, value):
         if re.match(r'^[0-9\W]+$', value):
-            raise ValidationError({'name': 'Название рецепта не может'
-                                   ' состоять только из цифр или знаков.'})
+            raise ValidationError('Название рецепта не может'
+                                  ' состоять только из цифр или знаков.')
         return value
 
     @transaction.atomic
