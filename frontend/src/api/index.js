@@ -168,13 +168,9 @@ class Api {
           text,
           ingredients
         })
-      })
-      .then(response => this.checkResponse(response))
-      .catch(error => {
-        console.error('Ошибка:', error);
-        throw error;
-      });
-    }
+      }
+    ).then(this.checkResponse)
+  }
 
   updateRecipe ({
     name,
