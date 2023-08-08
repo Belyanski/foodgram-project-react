@@ -12,8 +12,12 @@ class Api {
     if (res.ok) {
       return res.json()
     } else {
-      return res.json().then(error => {
-        throw new Error(error.error || 'Произошла ошибка')
+      return res.json().then(data => {
+        if (data.name) {
+          throw new Error(data.name[0])
+        } else {
+          throw new Error('Произошла ошибка')
+        }
       })
     }
   }
