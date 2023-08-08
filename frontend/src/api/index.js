@@ -168,21 +168,9 @@ class Api {
           text,
           ingredients
         })
-      }).then(response => {
-        if (!response.ok) {
-          return response.json().then(data => {
-            if (data.name && data.name.length > 0) {
-              throw new Error(data.name[0]);
-            } else {
-              throw new Error('Произошла ошибка при создании рецепта.');
-            }
-          });
-        }
-        return response.json();
-      }).catch(error => {
-        console.log('Ошибка:', error.message);
-      });
-    }
+      }
+    ).then(this.checkResponse)
+  }
 
   updateRecipe ({
     name,
