@@ -8,13 +8,15 @@ class Api {
     if (res.status === 204) {
       return Promise.resolve(res)
     }
-    if (res.ok) {
-      return res.json()
-    } else {
-      return res.json().then(error => {
-        throw new Error(error.message || 'Произошла ошибка: ' + JSON.stringify(error))
-      })
-    }
+    
+    return res.json().then(data => {
+      if (res.ok) {
+        return data
+      } else {
+        const error = new Error(data.error || 'Произошла ошибка')
+        throw error
+      }
+    })
   }
 
   checkFileDownloadResponse (res) {
