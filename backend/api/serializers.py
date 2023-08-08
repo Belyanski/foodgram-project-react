@@ -1,5 +1,3 @@
-import re
-
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404
@@ -154,8 +152,8 @@ class RecipeWriteSerializer(ModelSerializer):
             'cooking_time',
         )
 
-    def validate_ingredients(self, data):
-        ingredients = data
+    def validate_ingredients(self, value):
+        ingredients = value
         if not ingredients:
             raise ValidationError({
                 'ingredients': 'Нужен хотя бы один ингредиент!'
@@ -172,10 +170,10 @@ class RecipeWriteSerializer(ModelSerializer):
                     'amount': 'Количество ингредиента должно быть больше 0!'
                 })
             ingredients_list.append(ingredient)
-        return data
+        return value
 
-    def validate_tags(self, data):
-        tags = data
+    def validate_tags(self, value):
+        tags = value
         if not tags:
             raise ValidationError({
                 'tags': 'Нужно выбрать хотя бы один тег!'
@@ -187,13 +185,7 @@ class RecipeWriteSerializer(ModelSerializer):
                     'tags': 'Теги должны быть уникальными!'
                 })
             tags_list.append(tag)
-        return data
-
-    def validate_name(self, data):
-        if re.match(r'^[0-9\W]+$', data):
-            raise ValidationError({'name': 'Название рецепта не может'
-                                   ' состоять только из цифр или знаков.'})
-        return data
+        return value
 
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
@@ -209,7 +201,6 @@ class RecipeWriteSerializer(ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        self.validate_name(validated_data.get('name', ''))
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.create_ingredients_amounts(recipe=recipe,
@@ -220,7 +211,6 @@ class RecipeWriteSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        self.validate_name(validated_data.get('name', ''))
         instance = super().update(instance, validated_data)
         instance.tags.clear()
         instance.tags.set(tags)
