@@ -1,3 +1,5 @@
+import re
+
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404
@@ -187,6 +189,12 @@ class RecipeWriteSerializer(ModelSerializer):
             tags_list.append(tag)
         return value
 
+    def validate_name(self, value):
+        if re.match(r'^[0-9\W]+$', value):
+            raise ValidationError({'name': 'Название рецепта не может'
+                                   ' состоять только из цифр или знаков.'})
+        return value
+
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
         IngredientInRecipe.objects.bulk_create(
@@ -201,6 +209,7 @@ class RecipeWriteSerializer(ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
+        self.validate_name(validated_data.get('name', ''))
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.create_ingredients_amounts(recipe=recipe,
@@ -211,6 +220,7 @@ class RecipeWriteSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
+        self.validate_name(validated_data.get('name', ''))
         instance = super().update(instance, validated_data)
         instance.tags.clear()
         instance.tags.set(tags)
