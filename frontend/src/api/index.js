@@ -12,7 +12,7 @@ class Api {
       return res.json()
     } else {
       return res.json().then(error => {
-        throw new Error(error.message || 'Произошла ошибка')
+        throw new Error(error.message || 'Произошла ошибка: ' + JSON.stringify(error))
       })
     }
   }
