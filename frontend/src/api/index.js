@@ -4,14 +4,17 @@ class Api {
     this._headers = headers
   }
 
-  checkResponse (res) {
-    return new Promise((resolve, reject) => {
-      if (res.status === 204) {
-        return resolve(res)
-      }
-      const func = res.status < 400 ? resolve : reject
-      res.json().then(data => func(data))
-    })
+  checkResponse(res) {
+    if (res.status === 204) {
+      return Promise.resolve(res)
+    }
+    if (res.ok) {
+      return res.json()
+    } else {
+      return res.json().then(error => {
+        throw new Error(error.message || 'Произошла ошибка')
+      })
+    }
   }
 
   checkFileDownloadResponse (res) {
@@ -160,27 +163,17 @@ class Api {
           ...this._headers,
           'authorization': `Token ${token}`
         },
-    body: JSON.stringify({
-      name,
-      image,
-      tags,
-      cooking_time,
-      text,
-      ingredients
-    })
-  }).then(response => {
-    if (!response.ok) {
-      return response.json().then(data => {
-        if (data.name && data.name.length > 0) {
-          throw new Error(data.name[0]);
-        } else {
-          throw new Error('Произошла ошибка при создании рецепта.');
-        }
-      });
-    }
-    return response.json();
-  });
-}
+        body: JSON.stringify({
+          name,
+          image,
+          tags,
+          cooking_time,
+          text,
+          ingredients
+        })
+      }
+    ).then(this.checkResponse)
+  }
 
   updateRecipe ({
     name,
