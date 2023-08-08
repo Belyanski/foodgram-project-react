@@ -4,22 +4,14 @@ class Api {
     this._headers = headers
   }
 
-  checkResponse(res) {
-    if (res.status === 204) {
-      return Promise.resolve(res)
-    }
-  
-    if (res.ok) {
-      return res.json()
-    } else {
-      return res.json().then(data => {
-        if (data.name) {
-          throw new Error(data.name[0])
-        } else {
-          throw new Error('Произошла ошибка')
-        }
-      })
-    }
+  checkResponse (res) {
+    return new Promise((resolve, reject) => {
+      if (res.status === 204) {
+        return resolve(res)
+      }
+      const func = res.status < 400 ? resolve : reject
+      res.json().then(data => func(data))
+    })
   }
 
   checkFileDownloadResponse (res) {
@@ -176,9 +168,21 @@ class Api {
           text,
           ingredients
         })
-      }
-    ).then(this.checkResponse)
-  }
+      }).then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            if (data.name && data.name.length > 0) {
+              throw new Error(data.name[0]);
+            } else {
+              throw new Error('Произошла ошибка при создании рецепта.');
+            }
+          });
+        }
+        return response.json();
+      }).catch(error => {
+        console.log('Ошибка:', error.message);
+      });
+    }
 
   updateRecipe ({
     name,
