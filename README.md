@@ -163,9 +163,7 @@ docker compose -f docker-compose.production.yml exec backend python manage.py ta
 <br>[Foodgram](https://foodkilogram.ddns.net/)</br>
 <br>[API Foodgram](https://foodkilogram.ddns.net/api/)</br>
 <br>[Документация Foodgram](https://foodkilogram.ddns.net/api/docs/)</br>
-<br>[Панель администратора и данные для входа(ревьюеру)](https://foodkilogram.ddns.net/admin/):</br>
-<br>```E-mail: written@and-directed.by```</br>
-<br>```Пароль: quentin_tarantino```</br>
+<br>[Панель администратора](https://foodkilogram.ddns.net/admin/)</br>
 
 #### Автор работы
 [Ярослав Белянский](https://github.com/Belyanski)
