@@ -87,9 +87,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            cat ~/.ssh/id_rsa
-            cat ~/.ssh/id_rsa.pub
-            
             cd yarik-rembo/foodgram
 
             sudo rm -f .env        
