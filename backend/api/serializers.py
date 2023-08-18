@@ -157,7 +157,7 @@ class RecipeWriteSerializer(ModelSerializer):
     def validate_ingredients(self, value):
         ingredients = value
         if not ingredients:
-            raise ValidationError('Нужен хотя бы один ингредиент!')
+            raise ValidationError('Ингредиентов не может быть меньше 1')
 
         ingredients_list = []
         for item in ingredients:
