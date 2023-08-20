@@ -87,7 +87,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            cd yarik-rembo/foodgram
+            cd foodgram
 
             sudo rm -f .env        
             sudo touch .env
