@@ -156,7 +156,7 @@ docker compose -f docker-compose.production.yml exec backend python manage.py ta
 
 	location /admin/ {
 	   proxy_set_header Host $http_host;
-	   proxy_pass http://127.0.0.1:8000/admin;
+	   proxy_pass http://127.0.0.1:8000/admin/;
 	}
 <тут_настройки_ssl-сертификата>
 ```
