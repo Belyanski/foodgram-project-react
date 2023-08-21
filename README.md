@@ -7,7 +7,7 @@
 ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat&logo=docker&logoColor=white)
 
 ## Описание проекта
-Foodgram - это сайт, на котором пользователи могут публиковать рецепты, добавлять чужие рецепты в избранное и подписываться на публикации других авторов. Сервис «Список покупок» позволяет пользователям создавать список продуктов, которые нужно купить для приготовления выбранных блюд. 
+Foodgram – это сайт, на котором пользователи могут публиковать рецепты, добавлять чужие рецепты в избранное и подписываться на публикации других авторов. Сервис «Список покупок» позволяет пользователям создавать список продуктов, которые нужно купить для приготовления выбранных блюд. 
 ## Запуск проекта на локальной машине
 - Клонировать репозиторий и перейти в него в командной строке:
 ```
@@ -82,6 +82,10 @@ Password (again): <повторите_ваш_пароль>
 - Перейти в браузере по адресу http://localhost/api/docs/
 
 ## Запуск проекта на боевом сервере
+```Примечание: дальнейшии инструкции составлены на основе работы с сервером на OS Ubuntu 20.04.```
+
+- Форкните репозиторий
+- Клонируйте репозиторий на локальную машину git clone git@github.com:<ваш_аккаунт>/foodgram-project-react.git
 - В файле ```nginx.conf``` замените **ip сервера** и **домен** на свои
 - Предварительно авторизовавших в терминале на **DockerHub** (```docker login```) сбилдить и пушнуть образы  в директориях **backend** и **frontend**
 ```
@@ -95,10 +99,11 @@ docker push <ваше_имя_пользователя>/foodgram_frontend
 Подготовка сервера:
 - В домашней директории сервера создать папку **foodgram** ``` mkdir foodgram``` и перейти в нее ``` cd foodgram``` 
 - В директории **foodgram** создать папки **infra** и **docs**, также через ```mkdir```
-- В папке **docs** разместить файлы ```openapi-schema.yml``` и ```redoc.html``` из данного репозитерия 
+- В папке **docs** разместить файлы ```openapi-schema.yml``` и ```redoc.html``` из репозитерия 
 - В папке infra аналогичным способом разместить ```docker-compose.production.yml``` и ```nginx.conf```
 
-В **Settings** репозитория на **GitHub** в разделе```Secrets and variables```  создать следующие секреты:
+В корневой директории проекта создайте файл с секретами ```nano .env``` и  заполните его: 
+
 Для Django-проекта
 ```
 SECRET_KEY                              # Секретный ключ Django-проекта
@@ -107,12 +112,63 @@ ALLOWED_HOSTS                           # можно указать звездо
 ```
 Примерные значения для БД PostgreSQL
 ```
-POSTGRES_DB=                            # foodgram 
-POSTGRES_USER=                          # foodgram_user
-POSTGRES_PASSWORD=                      # foodgram_password
-DB_NAME=                                # foodgram
-DB_HOST=                                # db
-DB_PORT=                                # 5432
+POSTGRES_DB                             # foodgram 
+POSTGRES_USER                           # foodgram_user
+POSTGRES_PASSWORD                       # foodgram_password
+DB_NAME                                 # foodgram
+DB_HOST                                 # db
+DB_PORT                                 # 5432
+```
+
+Замените настройки **Nginx** серверва на следующие:
+``` sudo nano /etc/nginx/sites-enabled/default```
+```
+server {
+
+	server_name <ваш_домен>;
+	
+	location / {
+	   proxy_set_header Host $http_host;
+	   proxy_pass http://127.0.0.1:8000;
+	}
+
+	location /admin/ {
+	   proxy_set_header Host $http_host;
+	   proxy_pass http://127.0.0.1:8000/admin/;
+	}
+}
+```
+Сохранитие изменение и презагрузите **Nginx** ```sudo systemctl reload nginx```.  Работу конфига можно проверить командой ```sudo nginx -t```.
+
+В папке проекта **infra** последовательно выполните следующие команды:
+
+```
+sudo docker compose -f docker-compose.production.yml up -d
+docker compose -f docker-compose.production.yml exec backend python manage.py migrate --noinput
+docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
+docker compose -f docker-compose.production.yml exec backend python manage.py ingrs_loader 
+docker compose -f docker-compose.production.yml exec backend python manage.py tags_loader
+```
+После выполнения описаннх действий проект должен стать доступным по домену. Поздравляю! 
+
+## Автоматизация деплоя
+Скорректируйте параметр ```tags``` в файле ```.github/workflows/main.yml``` под свои данные с  **Docker Hub**. Также удостоверьтесь, что на шаге ```Executing remote ssh commands to deploy``` прописан правильный путь к проекту. 
+
+В **Settings** репозитория на **GitHub** в разделе **Secrets and variables**  создать следующие секреты:
+Для Django-проекта
+```
+SECRET_KEY                              # Секретный ключ Django-проекта
+DEBUG                                   # True или False
+ALLOWED_HOSTS                           # можно указать звездочку *
+```
+Примерные значения для БД PostgreSQL
+```
+POSTGRES_DB                             # foodgram 
+POSTGRES_USER                           # foodgram_user
+POSTGRES_PASSWORD                       # foodgram_password
+DB_NAME                                 # foodgram
+DB_HOST                                 # db
+DB_PORT                                 # 5432
 ```
 Данные для авторизации на DockerHub
 ```
@@ -124,7 +180,7 @@ DOCKER_USERNAME                        # Логин
 HOST                                   # Ip-адрес сервера
 SSH_KEY                                # SSH-ключ
 USER                                   # Имя пользователя
-PASSPHRASE                             # Секретная фраза(пароль)
+PASSPHRASE                             # Секретная фраза от ssh-ключа
 ```
 Для уведомления в мессенджере Telegram
 ```
@@ -138,28 +194,7 @@ git commit -m '<имя_коммита>'
 git pushh
 ```
 В разделе **Actions** на **GitHub** вы можете отследить ход деплоя проекта на сервере. Или можно дождаться уведомления от вашего бота в **Telegram**.
-После успешного деплоя проекта на сервер в папке **infra** выполните следующие команды:
-```
-docker compose -f docker-compose.production.yml exec backend python manage.py migrate --noinput
-docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
-docker compose -f docker-compose.production.yml exec backend python manage.py ingrs_loader 
-docker compose -f docker-compose.production.yml exec backend python manage.py tags_loader
-```
-Измените настройки Nginx серверва на следующие:
-```
-	server_name <ваш_домен>;
-	
-	location / {
-	   proxy_set_header Host $http_host;
-	   proxy_pass http://127.0.0.1:8000;
-	}
 
-	location /admin/ {
-	   proxy_set_header Host $http_host;
-	   proxy_pass http://127.0.0.1:8000/admin/;
-	}
-<тут_настройки_ssl-сертификата>
-```
 <br>[Foodgram](https://foodkilogram.ddns.net/)</br>
 <br>[API Foodgram](https://foodkilogram.ddns.net/api/)</br>
 <br>[Документация Foodgram](https://foodkilogram.ddns.net/api/docs/)</br>
