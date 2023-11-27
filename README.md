@@ -195,10 +195,10 @@ git pushh
 ```
 В разделе **Actions** на **GitHub** вы можете отследить ход деплоя проекта на сервере. Или можно дождаться уведомления от вашего бота в **Telegram**.
 
-<br>[Foodgram](https://foodkilogram.ddns.net/)</br>
-<br>[API Foodgram](https://foodkilogram.ddns.net/api/)</br>
-<br>[Документация Foodgram](https://foodkilogram.ddns.net/api/docs/)</br>
-<br>[Панель администратора](https://foodkilogram.ddns.net/admin/)</br>
+<br>[Foodgram](https://foodkilogram.myddns.me/)</br>
+<br>[API Foodgram](https://foodkilogram.myddns.me/api/)</br>
+<br>[Документация Foodgram](https://foodkilogram.myddns.me/api/docs/)</br>
+<br>[Панель администратора](https://foodkilogram.myddns.me/admin/)</br>
 
 #### Автор работы
 [Ярослав Белянский](https://github.com/Belyanski)
